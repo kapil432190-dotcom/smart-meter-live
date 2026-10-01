@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Meter Live Simulation</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+        min-height: 100vh;
+        background: #101214;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 15px;
+        color: #fff;
+    }
+
+    .app {
+        width: 100%;
+        max-width: 1050px;
+        background: #1b1e21;
+        border-radius: 22px;
+        padding: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,.55);
+    }
+
+    .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+    }
+
+    .brand {
+        font-size: 25px;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    .brand span {
+        color: #ffd400;
+    }
+
+    .status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #111;
+        padding: 8px 14px;
+        border-radius: 30px;
+        font-size: 14px;
+    }
+
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        background: #22e06f;
+        border-radius: 50%;
+        box-shadow: 0 0 12px #22e06f;
+    }
+
+    .meter {
+        background: #d8d8d8;
+        border-radius: 18px;
+        padding: 18px;
+        border: 5px solid #555;
+        box-shadow:
+            inset 0 0 25px rgba(0,0,0,.3),
+            0 12px 30px rgba(0,0,0,.4);
+        color: #111;
+    }
+
+    .meter-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .meter-name {
+        font-size: 22px;
+        font-weight: 900;
+    }
+
+    .meter-type {
+        font-size: 13px;
+        background: #222;
+        color: #fff;
+        padding: 6px 10px;
+        border-radius: 5px;
+    }
+
+    .display {
+        background: #07100a;
+        border: 6px solid #222;
+        border-radius: 10px;
+        padding: 15px;
+        box-shadow: inset 0 0 25px rgba(0,0,0,.8);
+    }
+
+    .display-title {
+        color: #91a894;
+        font-size: 12px;
+        letter-spacing: 2px;
+        margin-bottom: 6px;
+    }
+
+    .reading {
+        color: #73ff89;
+        font-family: "Courier New", monospace;
+        font-size: clamp(35px, 8vw, 70px);
+        font-weight: 900;
+        letter-spacing: 4px;
+        text-shadow: 0 0 12px rgba(70,255,100,.6);
+        line-height: 1;
+    }
+
+    .unit {
+        color: #9cffaa;
+        font-size: 18px;
+        margin-left: 5px;
+    }
+
+    .secondary {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .screen-box {
+        background: #101711;
+        border-radius: 8px;
+        padding: 9px;
+        border: 1px solid #334b38;
+    }
+
+    .screen-label {
+        color: #829687;
+        font-size: 11px;
+        margin-bottom: 4px;
+    }
+
+    .screen-value {
+        color: #7cff91;
+        font-family: "Courier New", monospace;
+        font-weight: bold;
+        font-size: 17px;
+    }
+
+    .led-area {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 14px;
+        padding: 10px;
+        background: #c4c4c4;
+        border-radius: 8px;
+    }
+
+    .led {
+        width: 18px;
+        height: 18px;
+        background: #e60000;
+        border-radius: 50%;
+        box-shadow: 0 0 5px rgba(230,0,0,.5);
+    }
+
+    .led.active {
+        box-shadow:
+            0 0 8px #ff0000,
+            0 0 20px #ff0000,
+            0 0 35px rgba(255,0,0,.7);
+    }
+
+    .led-text {
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    .content {
+        display: grid;
+        grid-template-columns: 1.1fr .9fr;
+        gap: 18px;
+        margin-top: 18px;
+    }
+
+    .panel {
+        background: #24282c;
+        border-radius: 16px;
+        padding: 18px;
+    }
+
+    .panel h2 {
+        font-size: 18px;
+        margin-bottom: 14px;
+    }
+
+    .appliance {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 12px;
+        background: #181b1e;
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 9px;
+    }
+
+    .appliance-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .icon {
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #30353a;
+        border-radius: 8px;
+        font-size: 20px;
+    }
+
+    .appliance-name {
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    .appliance-watt {
+        font-size: 12px;
+        color: #aeb5ba;
+        margin-top: 2px;
+    }
+
+    button {
+        border: none;
+        cursor: pointer;
+        border-radius: 8px;
+        padding: 9px 14px;
+        font-weight: 800;
+        transition: .15s;
+    }
+
+    .toggle {
+        background: #3a3f44;
+        color: white;
+    }
+
+    .toggle.on {
+        background: #ffd400;
+        color: #111;
+        box-shadow: 0 0 12px rgba(255,212,0,.35);
+    }
+
+    .summary {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .stat {
+        background: #181b1e;
+        border-radius: 10px;
+        padding: 13px;
+    }
+
+    .stat-label {
+        color: #9ca4aa;
+        font-size: 12px;
+        margin-bottom: 6px;
+    }
+
+    .stat-value {
+        font-size: 22px;
+        font-weight: 900;
+    }
+
+    .yellow {
+        color: #ffd400;
+    }
+
+    .green {
+        color: #53ed7a;
+    }
+
+    .info {
+        margin-top: 12px;
+        background: #181b1e;
+        border-radius: 10px;
+        padding: 13px;
+        line-height: 1.5;
+        font-size: 13px;
+        color: #c9ced1;
+    }
+
+    .controls {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+    }
+
+    .reset {
+        background: #555b60;
+        color: white;
+    }
+
+    .demo {
+        background: #ffd400;
+        color: #111;
+    }
+
+    .formula {
+        margin-top: 12px;
+        padding: 12px;
+        background: #111315;
+        border-left: 4px solid #ffd400;
+        border-radius: 6px;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        color: #e7e7e7;
+    }
+
+    .footer {
+        text-align: center;
+        margin-top: 15px;
+        font-size: 11px;
+        color: #777f85;
+    }
+
+    @media (max-width: 760px) {
+        .content {
+            grid-template-columns: 1fr;
+        }
+
+        .secondary {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .app {
+            padding: 12px;
+        }
+
+        .meter {
+            padding: 12px;
+        }
+    }
+
+    @media (max-width: 420px) {
+        .secondary {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .appliance {
+            grid-template-columns: 1fr;
+        }
+
+        .toggle {
+            width: 100%;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <div class="topbar">
+        <div class="brand">
+            SMART <span>METER</span> — LIVE DEMO
+        </div>
+
+        <div class="status">
+            <div class="status-dot"></div>
+            SUPPLY ON
+        </div>
+    </div>
+
+    <!-- SMART METER -->
+    <div class="meter">
+
+        <div class="meter-head">
+            <div class="meter-name">SMART ENERGY METER</div>
+            <div class="meter-type">1-PHASE • 230V</div>
+        </div>
+
+        <div class="display">
+
+            <div class="display-title">
+                ACTIVE ENERGY
+            </div>
+
+            <div>
+                <span class="reading" id="energyDisplay">0.000</span>
+                <span class="unit">kWh</span>
+            </div>
+
+            <div class="secondary">
+
+                <div class="screen-box">
+                    <div class="screen-label">VOLTAGE</div>
+                    <div class="screen-value" id="voltage">230.0 V</div>
+                </div>
+
+                <div class="screen-box">
+                    <div class="screen-label">CURRENT</div>
+                    <div class="screen-value" id="current">0.00 A</div>
+                </div>
+
+                <div class="screen-box">
+                    <div class="screen-label">POWER</div>
+                    <div class="screen-value" id="power">0 W</div>
+                </div>
+
+                <div class="screen-box">
+                    <div class="screen-label">FREQUENCY</div>
+                    <div class="screen-value">50.0 Hz</div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="led-area">
+            <div class="led" id="pulseLed"></div>
+
+            <div class="led-text">
+                IMPULSE LED —
+                <span id="ledText">NO LOAD / SLOW PULSE</span>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- LOWER SECTION -->
+    <div class="content">
+
+        <!-- APPLIANCES -->
+        <div class="panel">
+
+            <h2>🏠 Home Load Simulation</h2>
+
+            <div class="appliance">
+                <div class="appliance-info">
+                    <div class="icon">💡</div>
+                    <div>
+                        <div class="appliance-name">LED Bulb</div>
+                        <div class="appliance-watt">10 W</div>
+                    </div>
+                </div>
+                <button class="toggle" data-watt="10">OFF</button>
+            </div>
+
+            <div class="appliance">
+                <div class="appliance-info">
+                    <div class="icon">🌀</div>
+                    <div>
+                        <div class="appliance-name">Ceiling Fan</div>
+                        <div class="appliance-watt">70 W</div>
+                    </div>
+                </div>
+                <button class="toggle" data-watt="70">OFF</button>
+            </div>
+
+            <div class="appliance">
+                <div class="appliance-info">
+                    <div class="icon">📺</div>
+                    <div>
+                        <div class="appliance-name">TV</div>
+                        <div class="appliance-watt">100 W</div>
+                    </div>
+                </div>
+                <button class="toggle" data-watt="100">OFF</button>
+            </div>
+
+            <div class="appliance">
+                <div class="appliance-info">
+                    <div class="icon">🧊</div>
+                    <div>
+                        <div class="appliance-name">Refrigerator</div>
+                        <div class="appliance-watt">200 W</div>
+                    </div>
+                </div>
+                <button class="toggle" data-watt="200">OFF</button>
+            </div>
+
+            <div class="appliance">
+                <div class="appliance-info">
+                    <div class="icon">🔥</div>
+                    <div>
+                        <div class="appliance-name">Heater</div>
+                        <div class="appliance-watt">2000 W</div>
+                    </div>
+                </div>
+                <button class="toggle" data-watt="2000">OFF</button>
+            </div>
+
+            <div class="controls">
+                <button class="demo" id="demoButton">
+                    ▶ AUTO DEMO
+                </button>
+
+                <button class="reset" id="resetButton">
+                    RESET
+                </button>
+            </div>
+
+        </div>
+
+
+        <!-- LIVE DATA -->
+        <div class="panel">
+
+            <h2>📊 Live Meter Data</h2>
+
+            <div class="summary">
+
+                <div class="stat">
+                    <div class="stat-label">TOTAL LOAD</div>
+                    <div class="stat-value yellow" id="loadValue">
+                        0 W
+                    </div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-label">CURRENT</div>
+                    <div class="stat-value" id="currentValue">
+                        0.00 A
+                    </div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-label">ENERGY USED</div>
+                    <div class="stat-value green" id="energyValue">
+                        0.000 kWh
+                    </div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-label">EST. UNITS</div>
+                    <div class="stat-value yellow" id="unitValue">
+                        0.000
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="info">
+                <b>क्या हो रहा है?</b><br>
+                जैसे-जैसे घर का electrical load बढ़ता है,
+                meter current और power को measure करता है।
+                समय के साथ consumed energy <b>kWh</b> में accumulate होती है।
+            </div>
+
+            <div class="formula">
+                Power = Voltage × Current
+                <br>
+                Energy = Power × Time
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="footer">
+        Educational simulation only • Values are illustrative and not a utility-meter replica.
+    </div>
+
+</div>
+
+
+<script>
+
+    // -----------------------------
+    // BASIC VARIABLES
+    // -----------------------------
+
+    const voltageValue = 230;
+
+    let totalPower = 0;
+    let energyKWh = 0;
+
+    let lastTime = Date.now();
+
+    let demoRunning = false;
+    let demoTimer = null;
+
+    const energyDisplay = document.getElementById("energyDisplay");
+    const voltage = document.getElementById("voltage");
+    const current = document.getElementById("current");
+    const power = document.getElementById("power");
+
+    const loadValue = document.getElementById("loadValue");
+    const currentValue = document.getElementById("currentValue");
+    const energyValue = document.getElementById("energyValue");
+    const unitValue = document.getElementById("unitValue");
+
+    const pulseLed = document.getElementById("pulseLed");
+    const ledText = document.getElementById("ledText");
+
+    const buttons = document.querySelectorAll(".toggle");
+
+
+    // -----------------------------
+    // APPLIANCE BUTTONS
+    // -----------------------------
+
+    buttons.forEach(button => {
+
+        button.addEventListener("click", function() {
+
+            const watt = Number(this.dataset.watt);
+
+            if (this.classList.contains("on")) {
+
+                this.classList.remove("on");
+                this.textContent = "OFF";
+
+                totalPower -= watt;
+
+            } else {
+
+                this.classList.add("on");
+                this.textContent = "ON";
+
+                totalPower += watt;
+
+            }
+
+            updateMeter();
+
+        });
+
+    });
+
+
+    // -----------------------------
+    // UPDATE METER
+    // -----------------------------
+
+    function updateMeter() {
+
+        if (totalPower < 0) {
+            totalPower = 0;
+        }
+
+        const currentAmp = totalPower / voltageValue;
+
+        voltage.textContent =
+            voltageValue.toFixed(1) + " V";
+
+        current.textContent =
+            currentAmp.toFixed(2) + " A";
+
+        power.textContent =
+            Math.round(totalPower) + " W";
+
+        loadValue.textContent =
+            Math.round(totalPower) + " W";
+
+        currentValue.textContent =
+            currentAmp.toFixed(2) + " A";
+
+        energyDisplay.textContent =
+            energyKWh.toFixed(3);
+
+        energyValue.textContent =
+            energyKWh.toFixed(3) + " kWh";
+
+        unitValue.textContent =
+            energyKWh.toFixed(3);
+
+        updateLED();
+
+    }
+
+
+    // -----------------------------
+    // ENERGY ACCUMULATION
+    // -----------------------------
+
+    function calculateEnergy() {
+
+        const now = Date.now();
+
+        const seconds =
+            (now - lastTime) / 1000;
+
+        lastTime = now;
+
+        /*
+            Power is in watts.
+            Convert to kW:
+            watts / 1000
+
+            Energy:
+            kW × hours
+        */
+
+        const hours =
+            seconds / 3600;
+
+        energyKWh +=
+            (totalPower / 1000) * hours;
+
+        updateMeter();
+
+    }
+
+
+    // -----------------------------
+    // LED SIMULATION
+    // -----------------------------
+
+    let ledBusy = false;
+
+    function updateLED() {
+
+        if (totalPower <= 0) {
+
+            pulseLed.classList.remove("active");
+
+            ledText.textContent =
+                "NO LOAD / SLOW PULSE";
+
+            return;
+        }
+
+        /*
+            Higher load = faster LED pulses.
+            This is only a visual demonstration.
+        */
+
+        const pulseInterval =
+            Math.max(
+                120,
+                1400 - totalPower * 0.45
+            );
+
+        if (!ledBusy) {
+
+            ledBusy = true;
+
+            pulseLed.classList.add("active");
+
+            setTimeout(() => {
+
+                pulseLed.classList.remove("active");
+
+                setTimeout(() => {
+
+                    ledBusy = false;
+
+                }, pulseInterval);
+
+            }, 80);
+
+        }
+
+        if (totalPower < 100) {
+
+            ledText.textContent =
+                "LOW LOAD / SLOW PULSE";
+
+        } else if (totalPower < 500) {
+
+            ledText.textContent =
+                "NORMAL LOAD / PULSE";
+
+        } else {
+
+            ledText.textContent =
+                "HIGH LOAD / FAST PULSE";
+
+        }
+
+    }
+
+
+    // -----------------------------
+    // RESET
+    // -----------------------------
+
+    document
+        .getElementById("resetButton")
+        .addEventListener("click", function() {
+
+            stopDemo();
+
+            totalPower = 0;
+            energyKWh = 0;
+
+            buttons.forEach(button => {
+
+                button.classList.remove("on");
+                button.textContent = "OFF";
+
+            });
+
+            lastTime = Date.now();
+
+            updateMeter();
+
+        });
+
+
+    // -----------------------------
+    // AUTO DEMO
+    // -----------------------------
+
+    document
+        .getElementById("demoButton")
+        .addEventListener("click", function() {
+
+            if (demoRunning) {
+
+                stopDemo();
+
+                this.textContent =
+                    "▶ AUTO DEMO";
+
+                return;
+
+            }
+
+            startDemo();
+
+            this.textContent =
+                "⏸ STOP DEMO";
+
+        });
+
+
+    function startDemo() {
+
+        demoRunning = true;
+
+        const sequence = [
+            0,       // All OFF
+            10,      // Bulb
+            80,      // Bulb + Fan
+            180,     // + TV
+            380,     // + Refrigerator
+            2380,    // + Heater
+            380,
+            180,
+            80,
+            10,
+            0
+        ];
+
+        let step = 0;
+
+        runDemoStep(sequence);
+
+        demoTimer = setInterval(() => {
+
+            step++;
+
+            if (step >= sequence.length) {
+
+                step = 0;
+
+            }
+
+            setDemoLoad(sequence[step]);
+
+        }, 2200);
+
+    }
+
+
+    function runDemoStep(sequence) {
+
+        setDemoLoad(sequence[0]);
+
+    }
+
+
+    function setDemoLoad(targetPower) {
+
+        buttons.forEach(button => {
+
+            button.classList.remove("on");
+            button.textContent = "OFF";
+
+        });
+
+        let remaining = targetPower;
+
+        const applianceWatts = [2000, 200, 100, 70, 10];
+
+        for (let watt of applianceWatts) {
+
+            if (remaining >= watt) {
+
+                const button =
+                    Array.from(buttons)
+                    .find(
+                        b => Number(b.dataset.watt) === watt
+                    );
+
+                if (button) {
+
+                    button.classList.add("on");
+                    button.textContent = "ON";
+
+                }
+
+                remaining -= watt;
+
+            }
+
+        }
+
+        totalPower = targetPower;
+
+        updateMeter();
+
+    }
+
+
+    function stopDemo() {
+
+        demoRunning = false;
+
+        if (demoTimer) {
+
+            clearInterval(demoTimer);
+            demoTimer = null;
+
+        }
+
+        const demoButton =
+            document.getElementById("demoButton");
+
+        demoButton.textContent =
+            "▶ AUTO DEMO";
+
+    }
+
+
+    // -----------------------------
+    // MAIN LIVE LOOP
+    // -----------------------------
+
+    setInterval(() => {
+
+        calculateEnergy();
+
+    }, 250);
+
+
+    // Initial display
+    updateMeter();
+
+</script>
+
+</body>
+</html>
