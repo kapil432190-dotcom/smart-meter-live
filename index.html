@@ -902,51 +902,65 @@
 
     function setDemoLoad(targetPower) {
 
-        buttons.forEach(button => {
+    buttons.forEach(button => {
+        button.classList.remove("on");
+        button.textContent = "OFF";
+    });
 
-            button.classList.remove("on");
-            button.textContent = "OFF";
+    let remaining = targetPower;
 
-        });
+    const geyserButton =
+        document.querySelector('[data-appliance="geyser"]');
 
-        let remaining = targetPower;
-       const geyserButton = document.querySelector('[data-appliance="geyser"]');
-const heaterButton = Array.from(buttons).find(b => Number(b.dataset.watt) === 2000 && !b.dataset.appliance);
-       if (targetPower >= 4380 && geyserButton) {
-    geyserButton.classList.add("on");
-    geyserButton.textContent = "ON";
-}
+    const heaterButton =
+        Array.from(buttons).find(
+            b => Number(b.dataset.watt) === 2000 &&
+                 !b.dataset.appliance
+        );
 
+    // 4380 W = Heater + Geyser + Refrigerator + TV + Fan + Bulb
+    if (targetPower >= 4380) {
+
+        if (heaterButton) {
+            heaterButton.classList.add("on");
+            heaterButton.textContent = "ON";
+        }
+
+        if (geyserButton) {
+            geyserButton.classList.add("on");
+            geyserButton.textContent = "ON";
+        }
+
+        remaining -= 4000;
+
+    } else {
+
+        // Normal demo loads
         const applianceWatts = [2000, 200, 100, 70, 10];
+
         for (let watt of applianceWatts) {
 
             if (remaining >= watt) {
 
                 const button =
-                    Array.from(buttons)
-                    .find(
-                        b => Number(b.dataset.watt) === watt
+                    Array.from(buttons).find(
+                        b => Number(b.dataset.watt) === watt &&
+                             !b.dataset.appliance
                     );
 
                 if (button) {
-
                     button.classList.add("on");
                     button.textContent = "ON";
-
+                    remaining -= watt;
                 }
-
-                remaining -= watt;
-
             }
-
         }
-
-        totalPower = targetPower;
-
-        updateMeter();
-
     }
 
+    totalPower = targetPower;
+
+    updateMeter();
+}
 
     function stopDemo() {
 
