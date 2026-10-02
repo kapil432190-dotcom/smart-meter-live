@@ -912,6 +912,10 @@
         let remaining = targetPower;
        const geyserButton = document.querySelector('[data-appliance="geyser"]');
 const heaterButton = Array.from(buttons).find(b => Number(b.dataset.watt) === 2000 && !b.dataset.appliance);
+       if (targetPower >= 4380 && geyserButton) {
+    geyserButton.classList.add("on");
+    geyserButton.textContent = "ON";
+}
 
         const applianceWatts = [2000, 200, 100, 70, 10];
         for (let watt of applianceWatts) {
