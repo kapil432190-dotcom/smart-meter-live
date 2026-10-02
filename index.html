@@ -715,7 +715,7 @@
             seconds / 3600;
 
         energyKWh +=
-            (totalPower / 1000) * hours;
+    (totalPower / 1000) * hours * (demoRunning ? 20 : 1);
 
         updateMeter();
 
